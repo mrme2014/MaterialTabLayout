@@ -1,5 +1,6 @@
 package com.mrs.materialtablayout;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
@@ -9,9 +10,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.TreeMap;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     FrameLayout content;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         content = (FrameLayout) findViewById(R.id.content);
         setUpMaterialTab();
+
         setTab();
     }
 
@@ -45,18 +51,18 @@ public class MainActivity extends AppCompatActivity {
 
         materialVp.setAdapter(new MyPagerAdapter(mViewList, mTitleList));
         materialTabLayout
-                .setTabMargin(20)
-                //  .addTabs("tab1","tab2","tab3")
-               // .setBottomLineColor()
+                .setupWithViewPager(materialVp)
+                .setBottomLineColor(Color.RED)
+                .setTabMargin(25)
                 .setTabsFromPagerAdapter(materialVp.getAdapter())
                 .setOnMaterialTabSelectedListener(new MaterialTabLayout.MaterialTabSelectedListener() {
                     @Override
                     public void onTabSelected(MaterialTabLayout.Tab tab, boolean reSelected) {
-                        //materialVp.setCurrentItem(tab.getPosition());
+                        materialVp.setCurrentItem(tab.getPosition(), false);
                         Toast.makeText(MainActivity.this, tab.getPosition() + "--" + reSelected, Toast.LENGTH_SHORT).show();
                     }
-                }).setupWithViewPager(materialVp);
-               // .setSelectTab(0);
+                });
+        // .setSelectTab(0);
 
     }
 
@@ -65,18 +71,22 @@ public class MainActivity extends AppCompatActivity {
         final ArrayList<View> mViewList = getViewList();
         final ArrayList<String> mTitleList = getTitleList();
 
-       // vp.setAdapter(new MyPagerAdapter(mViewList, mTitleList));
-       // tableLayout.setupWithViewPager(vp);
-       // tableLayout.setTabsFromPagerAdapter(vp.getAdapter());
+        // vp.setAdapter(new MyPagerAdapter(mViewList, mTitleList));
+        // tableLayout.setupWithViewPager(vp);
+        // tableLayout.setTabsFromPagerAdapter(vp.getAdapter());
+        tableLayout.addTab(tableLayout.newTab().setText("tab0"));
         tableLayout.addTab(tableLayout.newTab().setText("tab1"));
         tableLayout.addTab(tableLayout.newTab().setText("tab2"));
         tableLayout.addTab(tableLayout.newTab().setText("tab3"));
         tableLayout.addTab(tableLayout.newTab().setText("tab4"));
-        tableLayout.addTab(tableLayout.newTab().setText("tab5"));
         tableLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                content.addView(mViewList.get(tab.getPosition()));
+                View view = mViewList.get(tab.getPosition());
+                if (view.getParent()!=null){
+                    ((ViewGroup)view.getParent()).removeView(view);
+                }
+                content.addView(view);
                 Toast.makeText(MainActivity.this, tab.getPosition() + "", Toast.LENGTH_SHORT).show();
             }
 
@@ -87,9 +97,27 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
-
             }
         });
+        try {
+            Field mTabStrip = tableLayout.getClass().getDeclaredField("mTabStrip");
+            mTabStrip.setAccessible(true);
+            LinearLayout ltab = (LinearLayout) mTabStrip.get(tableLayout);
+            int childCount = ltab.getChildCount();
+            for (int i = 0; i < childCount; i++) {
+                View childAt = ltab.getChildAt(i);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -1);
+                params.weight=1;
+                params.leftMargin = 20;
+                params.rightMargin = 20;
+                childAt.setLayoutParams(params);
+                childAt.invalidate();
+            }
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
         tableLayout.getTabAt(0).select();
     }
 
