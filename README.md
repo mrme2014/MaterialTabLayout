@@ -2,7 +2,7 @@
 ### 两种方式自定义Tablayout指示器长度
 ### 添加依赖
 ```java
-dependecies{
+dependencies{
             compile 'com.qiaomu.library:tablayout:1.0.2'
 }
 ```
