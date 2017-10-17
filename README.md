@@ -3,7 +3,7 @@
 ### 添加依赖
 ```java
 dependencies{
-            compile 'com.qiaomu.library:tablayout:1.0.2'
+            compile 'com.qiaomu.library:tablayout:1.0.3'
 }
 ```
 
